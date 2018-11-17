@@ -1,0 +1,141 @@
+#include <iostream>
+#include <conio.h>
+//#include <stdio.h>
+#include <string.h>
+
+using namespace std;
+
+class samochod
+{
+	protected:
+		int id;
+		char marka[20];
+		char model[20];
+		char silnik;			// B, D, I
+		char rok_prod[4];		// rrrr
+//		char dt_wypozycz[10];	// rrrr.mm.dd
+//		char dt_zwrotu[10];		// rrrr.mm.dd
+		bool dziala;			// 1 tak
+		bool dostepne;			// 1 tak
+	public:
+			 samochod();
+		void dodaj(char *mar, char *mod);			//dodaj nowe auto do bazy
+//		void wypozycz();		//wypożyczenie auta - TYLKO TE, KTORE DZIALAJA
+//		void zworc();			//koniec wypożyczenia - SPRAWDZ STAN POJAZDU
+		void usun();
+		void wypisz();
+};
+// -------------------------------------
+/*
+samochod::samochod(int id, char *mar, char *mod, char sil, bool dzi, bool dos)
+{
+	id++; strcpy(marka, mar); strcpy(model, mod); silnik = sil; dziala = dzi; dostepne = dos;
+}
+*/
+samochod::samochod()
+{
+	id++; strcpy(marka, "BMW"); strcpy(model, "X300"); silnik = 'D'; dziala = 1; dostepne = 1;
+}
+void samochod::dodaj(char *mar, char *mod)
+{
+	strcpy(marka, mar);
+	strcpy(model, mod);
+}
+void samochod::wypisz()			// inline
+{
+	cout << marka << " " << model << endl;
+}
+//--------------------------------------
+/*
+class baza:public samochod
+{
+	public:
+			 baza(int rozmiar);
+		void del_all();
+		void show_all();
+};
+*/
+
+main()
+{
+	char opcja;
+	cout << "Witaj w programie!" << endl;
+	samochod auto1;
+
+//	auto1.dodaj(1);
+	auto1.wypisz();
+	
+	do
+	{
+		cout << endl << "1 - Dodaj nowe auto" << endl;
+		cout << "2 - Wypozycz auto" << endl;
+		cout << "3 - Zwrot auta" << endl;
+		cout << "4 - Usun auto" << endl;
+		cout << "5 - Wyswietl liste" << endl;
+		
+		cout << "q - koniec programu" << endl << endl;
+		
+		opcja = getch();
+		switch(opcja)
+		{
+			case '1' : cout << "Dodajemy do bazy nowe auto:"<<endl;		//bezposrednie dodanie auta do bazy
+				break;
+			case '2' : cout << "Wypozyczenie auta:"<<endl;				//bezposrednia edycja
+				break;
+			case '3' : cout << "Zwrocenie auta:"<<endl;					//bezposrednia edycja
+				break;
+			case '4' : cout << "Usuniecie pojazdow:"<<endl;				//bezposrednia edycja
+				break;
+			case '5' : cout << "Znajdz pojazd:"<<endl;					// lista (baza) pojazdow - spelniajacych warunki ...
+			// --------------------- pod menu - WYSZUKIWANIE
+				{
+					cout << "1 - ID";
+					cout << "\t\t\t2 - MARKA";
+					cout << "\t\t3 - MODEL";
+					cout << "\n4 - SILNIK";
+					cout << "\t\t5 - ROK PRODUKCJI";
+					cout << "\t6 - DATA WYPOZYCZENIA";
+					cout << "\n7 - DATA ZWROTU";
+					cout << "\t\t8 - CZY ODDANY";		//wypozyczony / dostepny
+					cout << "\t\t9 - STAN POJAZDU";		//dzialajacy / nie
+					cout << endl;
+					
+					char menu;
+					menu=getch();
+					switch(menu)		//jak zrobic zeby wygodnie wprowadzic dane, a te ktore chcemy pominac, przeklikac enterem?
+					{
+						case '1' : cout <<"test - ID"<<endl;
+						case '2' : cout <<"test - MARKA"<<endl;
+					}
+					cout << "\t\tTEST - potwierdzenie i wyswietlenie"<<endl;
+					//------------------- pod menu - DODANIE, WYPOZYCZENIE, ZWROT
+				}
+				break;
+			// --------------------------------------------------------------------------------------------------------------
+			case 'q' : 
+				char zapisz;
+				bool wyjscie = 0;
+				do
+				{
+					cout << "Czy zapisac wprowadzone zmiany? (Y/N): "<< endl;		// opcja zapisz jako
+					zapisz = getch();
+					if(zapisz == 'Y' or zapisz == 'y')
+					{
+						cout << "zapisano"<< endl;
+						wyjscie = 1;
+					}
+					else if(zapisz == 'N' or zapisz == 'n')
+					{
+						cout << "nie zapisano"<< endl;
+						wyjscie = 1;
+					}
+					else
+					{
+						cout << "Wprowadzono zly znak!" << endl;
+					}
+				}while(!wyjscie);
+					cout<<"Do widzenia"<<endl;
+		}
+	}while(opcja!='q');
+	return 0;
+}
