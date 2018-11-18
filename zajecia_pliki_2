@@ -1,0 +1,278 @@
+#include <stdio.h>
+#include <iostream>
+#include <conio.h>
+#include <string.h>
+#include <windows.h> // COORD
+
+#define L 20
+
+using namespace std;
+
+void gotoxy(int x,int y)		// nowe w v3 --- przewijanie wynikow w bok
+{
+	COORD c;
+	c.X = x-1;
+	c.Y = y-1;
+	SetConsoleCursorPosition (GetStdHandle (STD_OUTPUT_HANDLE), c);
+}
+
+class towar
+{
+    protected:
+        char nazwa[20];
+        float cena;
+        int sztuk;
+    public:
+        towar();
+        void czysc();
+        void pobierz(char *nazwa, float cena, int sztuk);
+        void drukuj();
+        void piszXY(int x, int y);					// NOWOSC ! w v3
+        float wartosc();
+ 
+};
+
+class bazatowar:public towar
+{
+    protected:
+        towar *tab;		//wskazanie do obiektu towar
+        int rozmiar;	//rozmiar tablicy podamy w main
+        int licznosc;
+        int current;							// NOWOSC ! w v3
+    private:
+        int i;
+    public:
+        bazatowar(int roz); //konstruktor parametryczny
+        void dodajkolejny(char *naz, float cen, int szt);
+        void czysccalosc();
+        // NOWOSC ! w v3
+        void setCurrent(int index);
+        void next();
+        void previous();
+        void showCurrent(int x, int y);
+        //------------------------
+        void drukujcalosc();	// tymczasowo
+        void wartosci();
+        float sumawartosc();
+		// nowe ------------ v4 pliki
+        void saveFile();
+        void readFile();
+        void deleteCurrent();
+        //---------------------------
+};
+// -------------------------------------------------------------------------------------------------------
+towar::towar()
+{
+    strcpy(nazwa," ");
+    cena=0;
+    sztuk=0;
+}
+
+void towar::czysc()
+{
+    strcpy(nazwa," ");
+    cena=0;
+    sztuk=0;
+}
+
+void towar::pobierz(char *nazwa, float cena, int sztuk)
+{
+    strcpy(nazwa,nazwa);
+    this->cena=cena;
+    this->sztuk=sztuk;
+}
+
+void towar::drukuj()
+{
+    cout<<nazwa<<"    "<<cena<<"    "<<sztuk<<endl;
+}
+
+float towar::wartosc()
+{
+    return cena*sztuk;
+}
+
+// NOWOSC ! w v3
+void towar::piszXY(int x, int y)		// malo elastyczne
+{	//lepiej 2 metody (etykiety i wartosci oddzielnie)
+	gotoxy(x,y);
+	cout << "Nazwa:          ";
+	gotoxy(x,y+1);
+	cout << "Cena:          ";
+	gotoxy(x,y+2);
+	cout << "Sztuk:          ";
+	gotoxy(x+8,y); cout << nazwa;
+	gotoxy(x+8,y+1); cout << cena;
+	gotoxy(x+8,y+2); cout << sztuk;
+}
+// ------------------------------------
+
+
+//_______________________________________metody bazatowar____________________________
+
+bazatowar::bazatowar(int roz) //konstruktor
+{
+    rozmiar=roz;
+    tab= new towar[rozmiar];
+    for(i=0;i<rozmiar;i++)
+        tab[i].czysc();
+    licznosc=0;
+}
+
+void bazatowar::czysccalosc()
+{
+    for(i=0;i<rozmiar;i++)
+        tab[i].czysc();
+    licznosc=0;
+}
+
+void bazatowar::dodajkolejny(char *naz, float cen, int szt)
+{
+    if(licznosc<rozmiar)
+    {
+        tab[licznosc].pobierz(naz,cen,szt);
+        licznosc++;
+    }
+}
+
+void bazatowar::drukujcalosc()
+{
+    for(i=0;i<rozmiar;i++)
+        tab[i].drukuj();
+}
+
+void bazatowar::wartosci()
+{
+ for(i=0;i<rozmiar;i++)
+        cout<<tab[i].wartosc()<<endl;
+}
+
+float bazatowar::sumawartosc()
+{
+    float suma_wart=0;
+    for(i=0;i<rozmiar;i++)
+        suma_wart+=tab[i].wartosc();
+    return suma_wart;
+}
+// nowe ------------ v4 pliki --------------------------------------------- wersja dobnra dla pracy na 1 pliku
+void bazatowar::saveFile()
+{
+	FILE *fp;
+	fp=fopen("nazwapliku.dat","wb");				// wb tryb zapisu
+	fwrite(&rozmiar, sizeof(rozmiar),1, fp);
+	fwrite(&licznosc, sizeof(licznosc),1, fp);
+	fwrite(tab, sizeof(*tab)*rozmiar,1, fp);		// ************ ZMIANA W v2 *********************************
+	fclose(fp);
+}
+
+void bazatowar::readFile()
+{
+	FILE *fp;
+	fp=fopen("nazwapliku.dat","rb");			// rb tryb odczytu
+	fread(&rozmiar, sizeof(rozmiar),1,fp);
+	fread(&licznosc, sizeof(licznosc),1,fp);
+	// odczytujemy wszystko naraz
+	fread(tab,sizeof(*tab)*rozmiar,1,fp);
+	fclose(fp);
+}
+
+// ------------------- nowosci w v3 ------------------------------------------
+void bazatowar::setCurrent(int index)
+{
+	if (index>=0 && index < licznosc)
+		current=index;
+}
+
+void bazatowar::next()
+{
+	if(current < licznosc -1)
+		current++;
+}
+
+void bazatowar::previous()
+{
+	if(current > 0)
+		current--;
+}
+
+void bazatowar::showCurrent(int x, int y)
+{
+	if(current>=0)
+		tab[current].piszXY(x,y);
+}
+
+void bazatowar::deleteCurrent()		// na nastepnych zajeciach
+{
+	
+}
+// ---------------------------------------------
+
+// ################################################################################################################################
+int main()
+{
+    char n[L],zn;
+    float c;
+    int sz, i, rozmiar;
+
+    cout<<"ile elementow w tablicy?" << endl;
+    cin>>rozmiar;
+    cin.ignore();
+    bazatowar baza(rozmiar);
+
+    do{
+        cout<<endl;
+        cout<<endl<<"1. czyszczenie"<<endl;
+        cout<<endl<<"2. czytanie z dodaniem kolejnego elementu"<<endl;
+        cout<<endl<<"3. drukowanie calej tablicy"<<endl;
+        cout<<endl<<"4. wartosci i ich suma"<<endl;
+        cout<<endl<<"6. save to file"<<endl;
+        cout<<endl<<"7. read from file"<<endl;
+        cout<<endl<<"8. delete current"<<endl;
+        cout<<endl<<"9. show current"<<endl;
+        cout<<endl<<"a. next"<<endl;
+        cout<<endl<<"b. previous"<<endl;
+        cout<<endl<<"c. podaj nr elementu"<<endl;
+        cout<<endl<<"5. koniec"<<endl;
+        
+        zn=getch();
+        switch(zn)
+        {
+            case '1':   baza.czysccalosc();
+                        break;
+            case '2':   cout<<"nazwa: "; gets(n);
+                        cout<<"cena: "; cin>>c;
+                        cout<<"sztuk: "; cin>>sz;
+                        cin.ignore();
+                        baza.dodajkolejny(n,c,sz);
+                        break;
+           case '3':    baza.drukujcalosc();
+                        break;
+           case '4':    baza.wartosci();
+                        cout<<"suma wszystkich wartosci: " << baza.sumawartosc();
+                        break;
+           case '5':    cout<<"do widzenia!"<<endl;
+                        getchar();
+		   case '6':	baza.saveFile();
+		   				break;
+		   	case '7':	baza.readFile();
+		   				break;
+		   	case '8':	baza.deleteCurrent();
+		   				break;
+		   	case '9':	baza.showCurrent(50,10);
+		   				break;
+		   	case 'a':	baza.next();
+		   				baza.showCurrent(50,10);
+		   				break;
+		   	case 'b':	baza.previous();
+		   				baza.showCurrent(50,10);
+		   				break;
+		   	case 'c':	cout << "Podaj nr elementu: ";
+		   				cin>>i;
+		   				baza.setCurrent(i);
+		   				break;
+        }
+
+
+    }
+    while (zn!='5');
+}
