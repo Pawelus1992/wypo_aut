@@ -1,0 +1,684 @@
+#include <iostream>
+#include <stdio.h>
+#include <conio.h>
+#include <vector>
+#include <string.h> 
+#include <fstream>
+#include <cstdlib>	// dla konwersji
+
+using namespace std;
+
+class Auto
+{
+	protected:
+		string Marka, Model;
+		unsigned int Id;
+		bool Dostepne, Wynajete, Oznaczone;
+ 	public:
+ 		Auto();
+ 		Auto(unsigned int, string, string, bool, bool, bool);
+ 		
+ 		string GetMarka();
+ 		string GetModel();
+ 		unsigned int GetId();
+ 		bool GetOznaczone();
+ 		bool GetDostepne();
+ 		bool GetWynajete();
+ 		
+ 		void SetId(unsigned int);
+		void SetMarka(string);
+ 		void SetModel(string);
+ 		void SetOznaczone(bool);
+ 		void SetDostepne(bool);
+ 		void SetWynajete(bool);
+};
+class Salon :public Auto
+{
+	protected:
+		unsigned int ilosc;
+	public:
+	//	Salon(unsigned int x, string mar, string mod);
+		vector <Auto> wekt;	
+		void PokazObecny(unsigned int);	// zamienic pokaz obecny na ustaw obecny - tak aby dalo sie tez modyfikowac i usuwac
+		void PokazWszystkie();
+//		void PokazOznaczone(vector <Auto> &);
+		
+//		void WyszukajPoNapisie(vector <Auto> &, string, char);		
+		void WyszukajPoId(unsigned int);
+		void WyszukajPoMarce(string);
+		void WyszukajPoModelu(string);
+		void WyszukajDostepne(bool);
+		void WyszukajWynajete(bool);
+//		void WyszukajGrupowo(vector <Auto> &, bool);
+		
+		void NowyElement(string, string, bool, bool, bool);		//przekazujemy referencje dla wektora
+		void Kosz();
+		void Usun(unsigned int);
+// ----------------------------- dodane ------------------------------------------------------
+		void WypoZwrot(unsigned int);
+// --------------------------------------------------------------------------------------------				
+		bool CzyDostepny();
+		
+		void SaveFile(bool, string, bool);
+        void ReadFile(bool, string, char);
+};
+// -------------------------------------------------------------------------------------------------------
+Auto::Auto()
+{
+	Id = 0;
+	Model = "BRAK";
+	Marka = "BRAK";
+	Oznaczone = 0;
+	Dostepne = 0;
+	Wynajete = 0;
+}
+
+Auto::Auto(unsigned int x, string mar, string mod, bool dos, bool wyn, bool ozn)
+{
+	Id = x;
+	Marka = mar;
+	Model = mod;
+	Dostepne = dos;
+	Wynajete = wyn;
+	Oznaczone = ozn;
+}
+
+unsigned int Auto::GetId()
+{
+	return Id;
+}
+string Auto::GetMarka()
+{
+	return Marka;
+}
+string Auto::GetModel()
+{
+	return Model;
+}
+bool Auto::GetOznaczone()
+{
+	return Oznaczone;
+}
+bool Auto::GetDostepne()
+{
+	return Dostepne;
+}
+bool Auto::GetWynajete()
+{
+	return Wynajete;
+}
+void Auto::SetId(unsigned int x)
+{
+	Id = x;
+}
+void Auto::SetMarka(string ma)
+{
+	Marka = ma;
+}
+void Auto::SetModel(string mo)
+{
+	Model = mo;
+}
+void Auto::SetOznaczone(bool o)
+{
+	Oznaczone = o;
+}
+void Auto::SetDostepne(bool d)
+{
+	Dostepne = d;
+}
+void Auto::SetWynajete(bool w)
+{
+	Wynajete = w;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Salon::NowyElement(string ma, string mo, bool dos, bool wyn, bool ozn)		
+{
+	if(wekt.size() == 0)
+		ilosc = 0;
+	Auto Temp(ilosc, ma, mo, dos, wyn, ozn);			// ilosc podana wewnatrz petli programu 
+	wekt.push_back(Temp);
+	ilosc ++;					
+//	delete Temp; ??????????????????????????????????????????????????????????????????????????????
+}
+void Salon::PokazWszystkie()
+{
+	for(unsigned int i=0; i < wekt.size(); i++)
+	{
+		cout << "ID: " << wekt[i].GetId() <<" Marka: " << wekt[i].GetMarka() << " Model: " << wekt[i].GetModel() 
+		<< " Dostepne: "<<wekt[i].GetDostepne()<<" Wypozyczone: "<<wekt[i].GetWynajete()<< " Oznaczone: "<<wekt[i].GetOznaczone()<<endl;
+	}
+}
+
+void Salon::PokazObecny(unsigned int x)
+{
+	cout << "ID: " << wekt[x].GetId() <<" Marka: " << wekt[x].GetMarka() << " Model: " << wekt[x].GetModel() 	
+	<< " Dostepne: "<<wekt[x].GetDostepne()<<" Wypozyczone: "<<wekt[x].GetWynajete()<< " Oznaczone: "<<wekt[x].GetOznaczone()<<endl;
+}
+
+bool Salon::CzyDostepny()		/// rozbudowac o czy auto jest wypozyczone ? i ktore konkretnie auto ?
+{
+	if (ilosc == 0)			// sprawdzic jak zachowa sie podmenu - po modyfikacji tej metody
+		return 0;
+	else
+		return 1;
+}
+// ------------ dodane -------------------------------------
+void Salon::WypoZwrot(unsigned int x)
+{
+	char kierunek;
+	//vec.begin() + x;
+	cout << "\tW - wypozyczenie\t||\tE - Zwrot"<<endl;
+	kierunek = getch();
+	switch(kierunek)
+	{
+		case 'W':
+		case 'w':
+			SetWynajete(true);
+			break;
+		case 'E':
+		case 'e':
+			SetWynajete(false);
+			break;
+		default:
+			cout << "Podano zly znak"<<endl;
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
+void Salon::Usun(unsigned int x)			// przeniesc ta kopie do kosza
+{
+	system("cls");
+	cout << "Usuwamy pozycje: "; PokazObecny(x); cout << "\tT/N"<<endl;
+	char potwierdz;
+	potwierdz = getch();
+	switch(potwierdz)
+	{
+		case 'T':
+		case 't':
+			wekt.erase(wekt.begin() + x );
+			ilosc--;
+			cout <<"\tusunieto"<<endl;
+		break;
+		case 'N':
+		case 'n':
+			cout << "\tnie usunieto"<<endl;
+		break;
+		default:
+			cout << "\tpodano zly znak"<<endl;
+		break;
+	}
+	system("pause");
+}
+void Salon::Kosz()		// dostosowac funkcje dla KOSZA (przeniesienie)
+{
+	cout << "1 - Usun wszystko\t\t 2 - Przywroc z kosza\t\t3 - Oproznij kosz"<<endl;
+	char wybor;
+	wybor = getch();
+	switch(wybor)
+	{
+		case '1':
+			if(wekt.size( ) > 0)
+			{
+				SaveFile(1, "kosz.txt", 0);
+				wekt.clear();
+				ilosc = 0;
+				cout << "Usunieto wszystkie"<<endl;
+			}
+			else
+			{
+				cout <<"\tBaza byla pusta !"<<endl;
+			}
+		break;
+		case '2':
+			ReadFile(1, "kosz.txt", 'K');
+		break;
+		case '3':
+			wekt.clear();
+			ilosc = 0;
+			SaveFile(1, "kosz.txt", 1);
+			cout << "\tKosz oprozniony"<<endl;
+			ReadFile(1, "plik.txt", '2');
+		break;
+	}
+}
+
+void Salon::SaveFile(bool zapiszjako, string n, bool pusty)
+{
+	ofstream plik;	// open file
+	if(!zapiszjako)
+	{
+//		ofstream plik;	
+		plik.open("plik.txt");
+		for(unsigned int i=0; i < wekt.size(); i++)		
+		{
+			plik << wekt[i].GetId() << endl << wekt[i].GetMarka() << endl << wekt[i].GetModel() <<endl<<wekt[i].GetDostepne()<<endl<<wekt[i].GetWynajete()<<endl<<wekt[i].GetOznaczone()<<endl;
+//			cout << vec[i].GetId() << endl << vec[i].GetMarka() << endl << vec[i].GetModel() <<endl<<vec[i].GetDostepne()<<endl<<vec[i].GetWynajete()<<endl<<vec[i].GetOznaczone()<<endl;		
+		}		
+		
+//		plik.close();
+	}else
+	{
+		plik.open(n.c_str());	//dopisek : '| ios::app)' - sprawia ze do pliku bedziemy dopisywac. Zastapienie pliku, nie wymaga dodatkowych oeracji przy edycji 
+		if(!pusty)
+		{
+			for(unsigned int i=0; i < wekt.size(); i++)
+			{
+					plik << wekt[i].GetId() << endl << wekt[i].GetMarka() << endl << wekt[i].GetModel() <<endl<<wekt[i].GetDostepne()<<endl<<wekt[i].GetWynajete()<<endl<<wekt[i].GetOznaczone()<<endl;
+//					cout << vec[i].GetId() << endl << vec[i].GetMarka() << endl << vec[i].GetModel() <<endl<<vec[i].GetDostepne()<<endl<<vec[i].GetWynajete()<<endl<<vec[i].GetOznaczone()<<endl;
+			}
+			
+		}
+		else
+		{
+			plik <<"";
+		}	
+	}
+	plik.close();
+}
+
+void Salon::ReadFile(bool NazwaOK, string n, char wybor)
+{
+	do{
+		
+		if(!NazwaOK)
+		{
+			cout << "Wskaz plik do otwarcia:\n\t1 - wpisz nazwe pliku\t\t2 - ostatnia kopia"<<endl;
+			wybor = getch();
+		}	
+		if(wybor == '1')
+		{
+			cout << "\twprowadz nazwe pliku (z rozszerzeniem): "; 
+			cin >> n;
+			NazwaOK = 1;
+		}
+		else if (wybor == '2')
+		{
+			n = "plik.txt";
+			NazwaOK = 1;
+		}
+		else if (wybor == 'K')
+		{
+		//	cout <<"przywrocono dane"<<endl;
+		}
+		else
+		{
+			cout << "\tPodano zly znak"<<endl;
+		}
+	}
+	while(!NazwaOK);
+	
+	fstream plik;
+	plik.open(n.c_str(), ios::in);		// tylko odczyt
+	if(plik.good() == false )
+	{
+		cout << "Nie odnaleziono pliku"<<endl;
+		system("pause");
+		exit(0);	// zamkniecie aplikacji i porzucenie zmian - jesli uzytkownik chcial wczytac plik, to i tak nie zalezalo mu na obecnie wprowadzonych zmianach
+	}
+	
+	string lin, mark, mod;
+	bool dost, ozna, wyna;
+	int i=1;
+
+	while(getline(plik, lin))
+	{
+		if( i == 1);
+		else if ( i == 2)
+		{
+			mark = lin;
+	//		cout << mark<<endl;
+		}
+		else if ( i == 3)
+		{
+			mod = lin;
+//			cout << mod<<endl;
+		}
+		else if ( i == 4)
+		{
+			if(lin == "0" )					// lin.c_str() == "0"    <- powodowalo konwersje na bool i wszedzie bylo 1
+				dost = false;
+			else
+				dost = true;
+				
+//		cout << "wew metody dost: "<<dost<<endl;
+		}
+		else if ( i == 5)
+		{
+			if(lin == "0" )
+				ozna = false;
+			else
+				ozna = true;
+//		cout << "wew metody ozna: "<<ozna<<endl;
+		}
+		else if ( i == 6)
+		{
+			if(lin == "0" )
+				wyna = false;
+			else
+				wyna = true;
+//		cout << "wew metody wyna: "<<wyna<<endl;
+		}
+		else
+		{
+			NowyElement(mark, mod, dost, ozna, wyna);			// zapisanie calego rekordu
+			i=1;	
+		}
+		i++;
+	}
+	NowyElement(mark, mod, dost, ozna, wyna);					// zapisanie OSTATNIEGO rekordu
+	plik.close();
+	cout << "Wczytano dane!"<<endl;
+}
+
+void Salon::WyszukajPoId(unsigned int x)
+{
+	bool znaleziony = 0;
+	for(unsigned int i=0; i < wekt.size(); i++)
+		if( wekt[i].GetId() == x)
+		{
+			znaleziony = 1;
+			cout << "ID: " << wekt[i].GetId() <<" Marka: " << wekt[i].GetMarka() << " Model: " << wekt[i].GetModel() 
+			<< " Dostepne: "<<wekt[i].GetDostepne()<<" Wypozyczone: "<<wekt[i].GetWynajete()<< " Oznaczone: "<<wekt[i].GetOznaczone()<<endl;
+		}
+	if(!znaleziony)
+		cout << "\nBrak pojazdu pasujacego do podanego kryterium"<<endl;
+}
+
+void Salon::WyszukajPoMarce(string n)
+{
+	bool znaleziony = 0;
+	for(unsigned int i=0; i < wekt.size(); i++)
+		if( wekt[i].GetMarka() == n)
+		{
+			znaleziony = 1;
+			cout << "ID: " << wekt[i].GetId() <<" Marka: " << wekt[i].GetMarka() << " Model: " << wekt[i].GetModel() 
+			<< " Dostepne: "<<wekt[i].GetDostepne()<<" Wypozyczone: "<<wekt[i].GetWynajete()<< " Oznaczone: "<<wekt[i].GetOznaczone()<<endl;
+		}
+	if(!znaleziony)
+		cout << "\nBrak pojazdu pasujacego do podanego kryterium"<<endl;
+}
+
+void Salon::WyszukajPoModelu(string n)
+{
+	bool znaleziony = 0;
+	for(unsigned int i=0; i < wekt.size(); i++)
+	{
+//		cout << endl << "test: " << vec[i].GetModel()<<endl;		// problem -> pomimo dobrych wartosci, ponizszy if jest zawsze false
+		if( wekt[i].GetModel() == n)
+		{
+			znaleziony = 1;
+			cout << "ID: " << wekt[i].GetId() <<" Marka: " << wekt[i].GetMarka() << " Model: " << wekt[i].GetModel() 
+			<< " Dostepne: "<<wekt[i].GetDostepne()<<" Wypozyczone: "<<wekt[i].GetWynajete()<< " Oznaczone: "<<wekt[i].GetOznaczone()<<endl;
+		}
+	}
+		
+	if(!znaleziony)
+		cout << "\nBrak pojazdu pasujacego do podanego kryterium"<<endl;
+}
+
+void Salon::WyszukajDostepne(bool d)
+{
+	bool znaleziony = 0;
+	for(unsigned int i=0; i < wekt.size(); i++)
+		if( wekt[i].GetDostepne() == d)
+		{
+			znaleziony = 1;
+			PokazObecny(i);
+		}
+	if(!znaleziony)
+		cout << "\nBrak pojazdu pasujacego do podanego kryterium"<<endl;	
+}
+// ################################################################################################################################
+void podopcja(vector <Auto> &wekt);		// dla podmenu
+Salon s1;								// globalnie dla podmenu
+// ################################################################################################################################
+int main()
+{
+//	vector <Auto> sal;			//  wektor typu Auto dla salonu
+//	s1.WEKT;
+
+	char opcja;
+	do
+	{
+//		if(opcja != NULL)
+//			system("cls");
+		cout << "Witaj w programie!\t\t\t\t\tWypozyczalnia v7.5\t\t\tPawel Sierz" << endl;
+		cout << "======================================================================================================================\n";
+		cout << "1 - WYSZUKAJ  ||  ";
+		cout << "2 - DODAJ  ||  ";
+		//cout << "3 - WYPOZYCZ  ||  ";
+		//cout << "4 - ZWROT  ||  ";
+		cout << "5 - KOSZ  ||  ";
+		cout << "6 - WCZYTAJ  ||  ";
+		cout << "7 - ZAPISZ  ||  ";
+		cout << " Esc" << endl;
+		cout << "======================================================================================================================\n";
+
+		string mar, mod;
+		opcja = getch();
+//		system("cls");
+		switch(opcja)
+		{
+			case '1' : 
+				podopcja(s1.wekt);
+				system("pause");
+				system("cls");
+			break;
+			case '2' : cout << "Wprowadzasz nowe auto:"<<endl;
+					cout << "Podaj, marke: ";
+					cin >> mar;
+					cout << "Podaj, model: ";
+					cin >> mod;
+				s1.NowyElement(mar, mod, 1, 0, 0);	
+				system("pause");
+				system("cls");
+			break;
+			/*case '3' : cout << "Wypozycz auto:"<<endl;	
+				//s1.WypoZwrot(sal, 1);
+				system("pause");
+				system("cls");		
+			break;
+			case '4' : cout << "Zwrot auta:"<<endl;
+				//s1.WypoZwrot(sal, 0);
+				system("pause");
+				system("cls");			
+			break;*/
+			case '5' :
+				s1.Kosz();
+				system("pause");
+				system("cls");
+			break;
+			// --------------------------------------------------------------------------------------------------------------
+			default:
+				system("cls");
+			break;
+			case '6' :
+				s1.ReadFile(0, " ", 'q');
+				system("pause");
+				system("cls");
+			break;
+			case '7' :
+				s1.SaveFile(0, "plik.txt", 0);
+				cout << "zapisano"<<endl;
+				system("pause");
+				system("cls");
+			break;
+			case 27 : 
+				char zapisz;
+				bool wyjscie = 0;
+				do
+				{
+					cout << "Czy zapisac wprowadzone zmiany? (T/N): "<< endl;		// opcja zapisz jako
+					zapisz = getch();
+					if(zapisz == 'T' or zapisz == 't')
+					{
+						bool zapiszjako;
+						string nazwa;
+						cout << "\tCzy chcesz zapisac plik pod nowa nazwa? (T/N)"<<endl;
+						zapisz = getch();
+						if(zapisz == 'T' or zapisz == 't')
+						{
+							zapiszjako = 1;
+							cout << "\twprowadz nazwe pliku z rozszerzeniem (np .txt) : "; 
+							cin >> nazwa;
+						}
+						else if(zapisz == 'N' or zapisz == 'n')
+						{
+							zapiszjako = 0;
+						}
+						s1.SaveFile(zapiszjako, nazwa, 0);
+						cout << "\tZapisano"<< endl;
+						wyjscie = 1;
+					}
+					else if(zapisz == 'N' or zapisz == 'n')
+					{
+						cout << "\tNie zapisano"<< endl;
+						wyjscie = 1;
+					}
+					else
+					{
+						cout << "Wprowadzono zly znak!" << endl;
+					}
+				}while(!wyjscie);
+			system("pause");
+			system("cls");
+		}
+	}while(opcja!= 27);
+	return 0;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void podopcja(vector <Auto> &wekt)
+{
+	bool powrot = 0, dost;
+	unsigned int ktory, id;
+	string marka, model;
+	
+	char x, znak;
+	do
+	{
+		if (s1.CzyDostepny())			// czy sa elementy w wektorze
+		{
+			system("cls");
+			cout << "Wyszukiwanie po:"<<endl;
+			cout << "\tID - 1   Marka - 2   Model - 3   Dostepne pojazdy - 4   Przeglad calej listy - 0" <<endl;
+		
+			if(wekt.size() == 1)		// a co z usuwaniem // jesli zostal jedyny element - to jego id = 0;
+				ktory=0;
+
+			cout <<endl<< "Bieazcy element: "; s1.PokazObecny(ktory);
+			cout << "\tNastepny element - 'N'\tPoprzedni element - 'B'\tUsun - 'Q'\tWypozyczanie - 'W'"<<endl<<endl;
+				
+			x = getch();
+			switch(x)
+			{
+				case 'n':
+				case 'N':
+					if( ktory < (wekt.size() -1) ){
+						ktory++;
+						s1.PokazObecny(ktory);
+					}
+					else if(ktory == (wekt.size() - 1) ){
+						cout << "To juz ostatni element, przejscie do pierwszego" << endl;
+						ktory = 0;
+					}
+//					s1.SetNext(vec);
+				break;
+				case 'b':
+				case 'B':
+					if( ktory > 0 ){
+						ktory--;
+						s1.PokazObecny(ktory);
+					}
+					else if(ktory == 0 ){
+						cout << "To pierwszy element, przejscie do ostatniego" << endl;
+						ktory = wekt.size() -1 ;
+					}
+//					s1.SetPrev(vec);
+				break;
+				case 'q':
+				case 'Q':
+					s1.Usun(ktory);
+//					s1.Modyfikacja(vec);			zmienic na oznaczi nastepnie usun / wypozycz / zmien status itd
+					powrot = 1;
+				break;
+				case 'w':
+				case 'W':
+					//s1.SetWynajete(1);
+					s1.WypoZwrot(ktory);
+					powrot = 1;
+					break;
+				case '1' :
+					cout << "Wpisz ID pojazdu: "; cin >> id;
+//					cout << "\t\t\t\tTwoje wpisy:\tID:"<<id<<" Marka: "<<marka<<" Model: "<<model<<endl;
+					cout << "\tczy chcesz podac kolejne kryterium wyszukiwania ? (T/N)\n"; znak = getch();
+					if (znak == 'N' || znak == 'n')
+					{
+						s1.WyszukajPoId(id);
+						powrot = 1;
+						break;
+					}
+					if (znak == 'T' || znak == 't')
+					{
+						continue;
+					}
+					else
+						continue;
+				case '2' :
+					cout << "Wpisz MARKE pojazdu: "; cin >> marka;
+//					cout << "\t\t\t\tTwoje wpisy:\tID:"<<id<<" Marka: "<<marka<<" Model: "<<model<<endl;
+					cout << "\tczy chcesz podac kolejne kryterium wyszukiwania ? (T/N)\n"; znak = getch();
+					if (znak == 'N' || znak == 'n')
+					{
+						s1.WyszukajPoMarce(marka);
+						powrot = 1;
+						break;
+					}
+					else if (znak == 'T' || znak == 't')
+					{
+						continue;
+					}
+					else
+					{
+						continue;
+					}
+				case '3' :
+					cout << "Wpisz MODEL pojazdu: "; cin >> model;
+//					cout << "\t\t\t\tTwoje wpisy:\tID:"<<id<<" Marka: "<<marka<<" Model: "<<model<<endl;
+					cout << "\tczy chcesz podac kolejne kryterium wyszukiwania ? (T/N)\n"; znak = getch();
+					if (znak == 'N' || znak == 'n')
+					{
+						s1.WyszukajPoModelu(model);
+						powrot = 1;
+						break;
+					}
+					else
+						continue;
+				case '4' :
+					cout << "Auto dostepne (1),\tniedostepne (0)\n"; cin >> dost;
+					cout << "\tczy chcesz podac kolejne kryterium wyszukiwania ? (T/N)\n"; znak = getch();
+					if (znak == 'N' || znak == 'n')
+					{
+						s1.WyszukajDostepne(dost);
+						powrot = 1;
+						break;
+					}
+					else
+						continue;
+				case '0' : 
+					s1.PokazWszystkie();		
+					powrot = 1;
+				break;
+				default:
+					powrot = 1;
+				break;
+			}	
+		}
+		else
+		{
+			cout << "Brak pojazdow w salonie !!!"<< endl;
+			powrot = 1;
+		}
+	}while(!powrot);
+}
